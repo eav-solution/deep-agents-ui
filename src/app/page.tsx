@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, Suspense } from "react";
 import { useQueryState } from "nuqs";
 import { ChatInterface } from "./components/ChatInterface/ChatInterface";
 import { TasksFilesSidebar } from "./components/TasksFilesSidebar/TasksFilesSidebar";
@@ -11,7 +11,11 @@ import { useAuthContext } from "@/providers/Auth";
 import type { SubAgent, FileItem, TodoItem } from "./types/types";
 import styles from "./page.module.scss";
 
-export default function HomePage() {
+// Opt out of static rendering since `useQueryState` relies on `useSearchParams`
+// which requires a Suspense boundary during prerendering.
+export const dynamic = "force-dynamic";
+
+function HomePageContent() {
   const { session } = useAuthContext();
   const [threadId, setThreadId] = useQueryState("threadId");
   const [selectedSubAgent, setSelectedSubAgent] = useState<SubAgent | null>(
@@ -101,5 +105,13 @@ export default function HomePage() {
         />
       )}
     </div>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <Suspense fallback={null}>
+      <HomePageContent />
+    </Suspense>
   );
 }
